@@ -5,6 +5,9 @@ using System.Text.Json.Serialization;
 using API.Utility;
 using Infrastructure.SharedKernel.Validators;
 using Infrastructure.SharedKernel.Mappers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 public class Program
 {
@@ -48,9 +51,28 @@ public class Startup
         services.AddTransient<HotelManager>();
         services.AddTransient<HotelFlightManager>();
         services.AddTransient<LastMinuteHotelManager>();
+        services.AddScoped<ITokenService, TokenService>();
 
 
         services.AddMemoryCache();
+
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = false,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = Configuration["Token:Issuer"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Token:Key"]))
+            };
+        });
+
+        services.AddAuthorization();
+
+        services.AddControllers();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -73,7 +95,7 @@ public class Startup
         app.UseStaticFiles();
 
         app.UseRouting();
-
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.UseEndpoints(endpoints =>

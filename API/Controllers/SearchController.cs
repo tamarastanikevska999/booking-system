@@ -1,5 +1,6 @@
 ﻿using Core.DTO;
 using Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -16,6 +17,7 @@ namespace API.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Search([FromBody] SearchRequest request)
         {
             if (request == null)
